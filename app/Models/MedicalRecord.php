@@ -59,4 +59,12 @@ class MedicalRecord extends Model
     {
         return $this->belongsTo(Queue::class);
     }
+
+    /**
+     * Scope untuk mendapatkan riwayat pemeriksaan per pasien
+     */
+    public function scopeByPatient($query, $patientId)
+    {
+        return $query->where('patient_id', $patientId)->orderBy('visit_date', 'desc');
+    }
 }

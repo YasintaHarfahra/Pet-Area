@@ -82,5 +82,6 @@
             updateTime(); // Initial call
         });
     </script>
+    @stack('scripts')
 </body>
 </html>

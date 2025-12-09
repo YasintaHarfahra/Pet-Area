@@ -41,20 +41,6 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('manage-medical-records', function (User $user) {
             return $user->role === 'dokter'; // Dokter bisa catat/update rekam medis dan resep
         });
-
-        Gate::define('manage-staff', function (User $user) {
-            return $user->role === 'dokter'; // Dokter yang mengatur admin
-        });
-
-        // Admin
-        Gate::define('manage-patients', function (User $user) {
-            return $user->role === 'admin'; // Admin yang mengelola data pasien (tambah, edit, hapus)
-        });
-
-        Gate::define('manage-visits', function (User $user) {
-            return $user->role === 'admin'; // Admin yang mencatat kunjungan
-        });
-
         Gate::define('manage-transactions', function (User $user) {
             return $user->role === 'admin'; // Admin yang mengelola transaksi
         });

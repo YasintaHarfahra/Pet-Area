@@ -40,9 +40,38 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="mb-4">
-                    <label for="date_of_birth" class="block text-gray-700 text-sm font-bold mb-2">Tanggal Lahir</label>
-                    <input type="date" id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth', $patient->date_of_birth) }}"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Umur Hewan (perkiraan)</label>
+                    @php
+                        $years = null;
+                        $months = null;
+                        if ($patient->date_of_birth) {
+                            $dob = \Carbon\Carbon::parse($patient->date_of_birth);
+                            $diff = $dob->diff(\Carbon\Carbon::now());
+                            $years = $diff->y;
+                            $months = $diff->m;
+                        }
+                    @endphp
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <select id="age_years" name="age_years"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Tahun</option>
+                                @for ($i = 0; $i <= 30; $i++)
+                                    <option value="{{ $i }}" {{ old('age_years', $years) == $i ? 'selected' : '' }}>{{ $i }} th</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div>
+                            <select id="age_months" name="age_months"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Bulan</option>
+                                @for ($i = 0; $i <= 11; $i++)
+                                    <option value="{{ $i }}" {{ old('age_months', $months) == $i ? 'selected' : '' }}>{{ $i }} bln</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Jika diubah, sistem akan menghitung ulang tanggal lahir berdasarkan umur.</p>
                 </div>
                 <div class="mb-4">
                     <label for="gender" class="block text-gray-700 text-sm font-bold mb-2">Jenis Kelamin</label>

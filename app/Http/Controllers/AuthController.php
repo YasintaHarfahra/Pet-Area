@@ -4,14 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cookie;
 use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
-        return view('auth.login');
+        $rememberRole = $request->cookie('remember_role_type', 'dokter');
+        $rememberLogin = $request->cookie('remember_login_field', '');
+        $rememberChecked = (bool) $request->cookie('remember_flag', false);
+
+        return view('auth.login', compact('rememberRole', 'rememberLogin', 'rememberChecked'));
     }
 
     public function login(Request $request)
@@ -43,20 +47,32 @@ class AuthController extends Controller
             ])->onlyInput('login_field');
         }
 
-        if (Auth::attempt($credentials)) {
+        $remember = $request->boolean('remember');
+        $guard = $roleType === 'dokter' ? 'dokter' : 'admin';
+
+        if (Auth::guard($guard)->attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            // Pastikan role yang login sesuai dengan yang diminta di form
-            // Ini untuk double-check keamanan, meskipun redirectBasedOnRole akan menangani
-            if (Auth::user()->role === $roleType) {
-                return $this->redirectBasedOnRole(Auth::user());
+            $user = Auth::guard($guard)->user();
+            if ($user && $user->role === $roleType) {
+                auth()->shouldUse($guard);
+                $response = $this->redirectBasedOnRole($user);
+
+                if ($remember) {
+                    return $response->withCookies([
+                        cookie('remember_role_type', $roleType, 60 * 24 * 30),
+                        cookie('remember_login_field', $loginField, 60 * 24 * 30),
+                        cookie('remember_flag', true, 60 * 24 * 30),
+                    ]);
+                }
+
+                return $response->withCookies([
+                    Cookie::forget('remember_role_type'),
+                    Cookie::forget('remember_login_field'),
+                    Cookie::forget('remember_flag'),
+                ]);
             } else {
-                // User berhasil login, tapi rolenya tidak sesuai yang diharapkan dari form.
-                // Misal: user memilih "Admin", tapi yang login adalah Dokter.
-                // Ini bisa jadi celah atau kebingungan. Logout dan beri pesan error.
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                 return back()->withErrors([
+                Auth::guard($guard)->logout();
+                return back()->withErrors([
                     'login_field' => 'Role yang Anda pilih tidak cocok dengan akun ini. Silakan coba role lain.',
                 ])->onlyInput('login_field');
             }
@@ -68,19 +84,31 @@ class AuthController extends Controller
         ])->onlyInput('login_field');
     }
 
-    // ... (metode logout dan redirectBasedOnRole tetap sama) ...
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
+        $guard = $request->input('guard');
+        $guardsToLogout = [];
+
+        if ($guard && in_array($guard, ['admin', 'dokter'])) {
+            $guardsToLogout[] = $guard;
+        } else {
+            $guardsToLogout = ['admin', 'dokter'];
+        }
+
+        foreach ($guardsToLogout as $logoutGuard) {
+            if (Auth::guard($logoutGuard)->check()) {
+                Auth::guard($logoutGuard)->logout();
+            }
+        }
+
         $request->session()->regenerateToken();
         return redirect('/login');
     }
 
     protected function redirectBasedOnRole($user)
     {
-        if ($user->role === 'dokter') { return redirect()->intended('/dashboard-dokter'); }
-        elseif ($user->role === 'admin') { return redirect()->intended('/dashboard-admin'); }
+        if ($user->role === 'dokter') { return redirect()->intended(route('dashboard.dokter')); }
+        elseif ($user->role === 'admin') { return redirect()->intended(route('dashboard.admin')); }
         return redirect()->intended('/home');
     }
 }

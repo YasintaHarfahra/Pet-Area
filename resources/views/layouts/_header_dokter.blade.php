@@ -34,6 +34,7 @@
                 <!-- Logout Button -->
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
+                    <input type="hidden" name="guard" value="dokter">
                     <button type="submit" 
                             class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
                             title="Logout">

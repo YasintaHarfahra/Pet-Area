@@ -259,17 +259,23 @@
             <p class="text-gray-600">Sign in to Pet Area Clinic</p>
         </div>
 
+        @php
+            $initialRole = old('role_type', $rememberRole ?? 'dokter');
+            $initialLogin = old('login_field', $rememberLogin ?? '');
+            $initialRemember = old('remember', $rememberChecked ?? false);
+        @endphp
+
         <form action="{{ route('login') }}" method="POST">
             @csrf
 
             {{-- Role Toggle --}}
             <div class="flex justify-center mb-8">
-                <div id="roleToggle" class="toggle-switch" data-role="dokter">
+                <div id="roleToggle" class="toggle-switch" data-role="{{ $initialRole }}">
                     <span class="toggle-switch-label dokter-label">DOKTER</span>
                     <span class="toggle-switch-label admin-label">ADMIN</span>
                     <div class="toggle-switch-handle" id="toggleHandle"></div>
                 </div>
-                <input type="hidden" name="role_type" id="roleType" value="dokter">
+                <input type="hidden" name="role_type" id="roleType" value="{{ $initialRole }}">
             </div>
 
             @if ($errors->any())
@@ -288,8 +294,8 @@
 
             <div class="input-group">
                 <input type="text" id="login_field" name="login_field" class="input-field @error('login_field') border-red-400 @enderror" 
-                       value="{{ old('login_field') }}" required autofocus placeholder=" ">
-                <label for="login_field" id="loginFieldLabel" class="input-label">Email Dokter</label>
+                       value="{{ $initialLogin }}" required autofocus placeholder=" ">
+                <label for="login_field" id="loginFieldLabel" class="input-label">{{ $initialRole === 'dokter' ? 'Email Dokter' : 'Username Admin' }}</label>
             </div>
 
             <div class="input-group">
@@ -309,7 +315,7 @@
 
             <div class="flex items-center justify-between mb-6 text-sm">
                 <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" name="remember" id="remember" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                    <input type="checkbox" name="remember" id="remember" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" @checked($initialRemember)>
                     <span class="ml-2 text-gray-700">Remember me</span>
                 </label>
                 <a href="#" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">Forgot password?</a>
@@ -363,8 +369,6 @@
                     adminLabel.style.color = 'white';
                     toggleHandle.style.left = '50%';
                 }
-                loginField.value = '';
-                loginField.focus();
             }
 
             // Initial state

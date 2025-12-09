@@ -54,10 +54,29 @@ class Queue extends Model
         return $query->where('status', 'in-progress');
     }
 
+    // Scope untuk antrian yang selesai
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
+    // Scope untuk antrian yang dibatalkan
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', 'cancelled');
+    }
+
+    // Scope untuk antrian yang belum dibatalkan
+    public function scopeNotCancelled($query)
+    {
+        return $query->where('status', '!=', 'cancelled');
+    }
+
     // Generate nomor antrian untuk hari ini
     public static function generateQueueNumber($date)
     {
         $lastQueue = self::whereDate('queue_date', $date)
+            ->notCancelled()
             ->orderBy('queue_number', 'desc')
             ->first();
 

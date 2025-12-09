@@ -249,6 +249,15 @@
 
     function generateQueueRow(queue) {
         const statusBadge = getStatusBadge(queue.status);
+        const startExamButton = queue.status === 'waiting' ? `
+            <a href="/admin/antrian/${queue.id}/mulai-pemeriksaan" 
+               class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors"
+               title="Mulai Pemeriksaan">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </a>
+        ` : '';
         const cancelButton = queue.status === 'waiting' ? `
             <form action="/admin/antrian/${queue.id}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to cancel this queue?');">
                 @csrf
@@ -285,6 +294,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-center">
                     <div class="flex items-center justify-center space-x-2">
+                        ${startExamButton}
                         <a href="/admin/antrian/${queue.id}" 
                            class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                            title="View Details">

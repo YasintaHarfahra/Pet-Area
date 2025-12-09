@@ -1,93 +1,162 @@
-{{-- Menentukan layout secara dinamis berdasarkan role user --}}
 @extends(Auth::user()->role === 'admin' ? 'layouts.admin_app' : 'layouts.dokter_app')
 
-{{-- Menentukan judul halaman secara dinamis --}}
-@section('title', 'Detail Rekam Medis - ' . (Auth::user()->role === 'admin' ? 'Admin' : 'Dokter'))
-@section('header_title', 'Detail Pasien')
+@section('title', 'Detail Pasien')
 
 @section('content')
-    <div class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md max-w-3xl">
-        <h2 class="text-3xl font-semibold text-gray-800 mb-6">Detail Pasien: {{ $patient->name }}</h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h3 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-2">Informasi Hewan</h3>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Nomor RM:</strong> {{ $patient->medical_record_number ?? '-' }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Nama:</strong> {{ $patient->name }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Jenis:</strong> {{ $patient->species }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Ras:</strong> {{ $patient->breed ?? '-' }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Tanggal Lahir:</strong> {{ $patient->date_of_birth ? \Carbon\Carbon::parse($patient->date_of_birth)->translatedFormat('d F Y') : '-' }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Jenis Kelamin:</strong> {{ $patient->gender ?? '-' }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Berat:</strong> {{ $patient->weight ? $patient->weight . ' kg' : '-' }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Riwayat Medis Umum:</strong> {{ $patient->medical_history ?? '-' }}</p>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-2">Informasi Pemilik</h3>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Nama Pemilik:</strong> {{ $patient->owner_name }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>No. HP:</strong> {{ $patient->owner_phone ?? '-' }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Alamat:</strong> {{ $patient->owner_address ?? '-' }}</p>
-                </div>
-                <div class="mb-2">
-                    <p class="text-gray-600"><strong>Email:</strong> {{ $patient->owner_email ?? '-' }}</p>
-                </div>
-            </div>
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <p class="text-sm uppercase tracking-wide text-blue-500 font-semibold">Informasi Pasien</p>
+            <h1 class="text-3xl font-extrabold text-gray-900 mt-1">{{ $patient->name }}</h1>
+            <p class="text-gray-500">Nomor Rekam Medis: <span class="font-semibold text-gray-900">{{ $patient->medical_record_number ?? '-' }}</span></p>
         </div>
-
-        <div class="mt-8 flex justify-between">
+        <div class="flex items-center space-x-3">
             @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.patients.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-150">Kembali ke Daftar Pasien</a>
-                <div class="space-x-2">
-                    <a href="{{ route('admin.patients.edit', $patient->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md transition duration-150">Edit Pasien</a>
-                    <form action="{{ route('admin.patients.destroy', $patient->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pasien ini?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:text-red-700 text-white font-bold py-2 px-4 rounded-md transition duration-150">Hapus Pasien</button>
-                    </form>
-                </div>
-            @else {{-- Dokter --}}
-                <a href="{{ route('dokter.patients.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-150">Kembali ke Daftar Pasien</a>
+                <a href="{{ route('admin.patients.index') }}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">← Kembali</a>
+                <a href="{{ route('admin.patients.edit', $patient->id) }}" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold rounded-lg">Edit</a>
+            @else
+                <a href="{{ route('dokter.patients.index') }}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">← Kembali</a>
             @endif
         </div>
-
-        {{-- Bagian untuk Riwayat Rekam Medis Pasien ini --}}
-        <h3 class="text-xl font-semibold text-gray-700 mt-8 mb-3 border-b pb-2">Riwayat Rekam Medis</h3>
-        @if($patient->medicalRecords->isNotEmpty())
-            <ul class="list-disc pl-5">
-                @foreach ($patient->medicalRecords->sortByDesc('visit_date') as $record)
-                    <li class="mb-2">
-                        <span class="font-medium">{{ \Carbon\Carbon::parse($record->visit_date)->translatedFormat('d F Y') }}</span> -
-                        Diagnosa: {{ Str::limit($record->diagnosis, 50) ?? '-' }}
-                        <a href="{{ route('medical_records.show', $record->id) }}" class="text-blue-500 hover:underline ml-2">Lihat Detail</a>
-                    </li>
-                @endforeach
-            </ul>
-        @else
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800 mt-4">
-                <p>Belum ada rekam medis untuk pasien ini.</p>
-            </div>
-        @endif
-
     </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">Identitas Pasien</h2>
+            <span class="text-sm text-gray-500">
+                Terakhir diperbarui: {{ $patient->updated_at ? $patient->updated_at->diffForHumans() : '-' }}
+            </span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+            <div class="lg:col-span-2 space-y-4">
+                <div class="border border-gray-100 rounded-xl p-4">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Data Hewan</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                        <div>
+                            <p class="text-gray-500">Nama Hewan</p>
+                            <p class="font-semibold text-gray-900">{{ $patient->name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Nomor Rekam Medis</p>
+                            <p class="font-semibold text-gray-900">{{ $patient->medical_record_number ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Jenis Hewan</p>
+                            <p class="font-semibold text-gray-900">{{ $patient->species ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Ras</p>
+                            <p class="font-semibold text-gray-900">{{ $patient->breed ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Jenis Kelamin</p>
+                            <p class="font-semibold text-gray-900">{{ $patient->gender ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Berat Badan</p>
+                            <p class="font-semibold text-gray-900">{{ $patient->weight ? $patient->weight . ' kg' : '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Tanggal Lahir</p>
+                            <p class="font-semibold text-gray-900">
+                                @if($patient->date_of_birth)
+                                    {{ \Carbon\Carbon::parse($patient->date_of_birth)->translatedFormat('d M Y') }}
+                                @else
+                                    -
+                                @endif
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Umur</p>
+                            <p class="font-semibold text-gray-900">
+                                @if($patient->date_of_birth)
+                                    @php
+                                        $dob = \Carbon\Carbon::parse($patient->date_of_birth);
+                                        $diff = $dob->diff(\Carbon\Carbon::now());
+                                    @endphp
+                                    {{ $diff->y }} tahun {{ $diff->m }} bulan
+                                @else
+                                    -
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Data Pemilik</h3>
+                <dl class="space-y-3 text-sm text-gray-700">
+                    <div>
+                        <dt class="text-gray-500">Nama Pemilik</dt>
+                        <dd class="font-semibold text-gray-900">{{ $patient->owner_name ?? '-' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500">No. HP</dt>
+                        <dd class="font-semibold text-gray-900">{{ $patient->owner_phone ?? '-' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500">Alamat</dt>
+                        <dd class="font-semibold text-gray-900">{{ $patient->owner_address ?? '-' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-gray-500">Email</dt>
+                        <dd class="font-semibold text-gray-900">{{ $patient->owner_email ?? '-' }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Riwayat Pemeriksaan</h2>
+                    <p class="text-sm text-gray-500">Rekam medis pasien berdasarkan tanggal kehadiran.</p>
+                </div>
+            </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dokter</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Diagnosa</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tindakan</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Resep Obat</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    @forelse($patient->medicalRecords as $record)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $record->visit_date ? \Carbon\Carbon::parse($record->visit_date)->translatedFormat('d M Y') : '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $record->doctor->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                {{ \Illuminate\Support\Str::limit($record->diagnosis ?? '-', 60) }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                {{ \Illuminate\Support\Str::limit($record->treatment ?? '-', 60) }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                {{ \Illuminate\Support\Str::limit($record->prescription ?? '-', 60) }}
+                            </td>
+                            <td class="px-6 py-4 text-center text-sm">
+                                <a href="{{ route('medical_records.show', $record->id) }}" class="text-blue-600 hover:text-blue-800 font-semibold">Detail</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-10 text-center text-sm text-gray-500">
+                                Belum ada rekam medis untuk pasien ini.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 @endsection
