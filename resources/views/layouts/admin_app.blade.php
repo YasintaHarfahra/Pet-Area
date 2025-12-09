@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard Admin Klinik Hewan')</title>
     @vite('resources/css/app.css') {{-- Pastikan ini memuat Tailwind CSS Anda --}}
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> {{-- Untuk Material Icons --}}
@@ -25,6 +26,16 @@
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #777; /* Lighter gray on hover */
+        }
+        
+        /* Button Primary Styling */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
         }
     </style>
 </head>

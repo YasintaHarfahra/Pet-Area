@@ -1,106 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Dokter - Klinik Hewan</title>
-    @vite('resources/css/app.css')
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-</head>
-<body class="bg-grey-100 font-sans antialiased flex min-h-screen">
-    {{-- Ini akan jadi sidebar dokter --}}
-    <aside class="w-64 bg-purple-300 text-white flex flex-col p-4 custom-scrollbar">
-        <div class="flex items-center mb-8 px-2 py-4">
-            <span class="material-icons text-blue-400 text-3xl mr-3">medical_services</span>
-            <h2 class="text-2xl font-bold">Klinik Hewan</h2>
-        </div>
-        <nav class="flex-1 space-y-2">
-            <h3 class="text-xs uppercase text-blue-600 px-2 pt-4 pb-2">Menu Dokter</h3>
-            <ul class="space-y-1">
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dashboard.dokter') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md transition duration-150">
-                        <span class="material-icons text-xl mr-3">dashboard</span>
-                        Dashboard
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.patients.index') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md transition duration-150">
-                        <span class="material-icons text-xl mr-3">folder_open</span>
-                        Data Pasien
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.medical_records.index') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md transition duration-150">
-                        <span class="material-icons text-xl mr-3">notes</span>
-                        Rekam Medis & Resep
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.staff.index') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md transition duration-150">
-                        <span class="material-icons text-xl mr-3">group</span>
-                        Manajemen Staf
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.change_password') }}" class="flex items-center px-4 py-2 hover:bg-blue-700 rounded-md transition duration-150">
-                        <span class="material-icons text-xl mr-3">lock</span>
-                        Ganti Password
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+@extends('layouts.dokter_app')
 
-    {{-- Main Content Area Dokter --}}
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <header class="bg-white p-4 shadow-sm flex items-center justify-between">
-            <h1 class="text-xl font-bold text-gray-800">Dashboard Dokter</h1>
-            <div class="flex items-center space-x-6">
-                <span class="text-gray-600 text-sm font-medium">Selamat datang, <span class="font-semibold">{{ Auth::user()->name }}</span></span>
-                <form action="{{ route('logout') }}" method="POST" class="inline-block">
-                    @csrf
-                    <button type="submit" class="material-icons text-gray-600 hover:text-red-500 transition duration-150">logout</button>
-                </form>
+@section('title', 'Doctor Dashboard')
+
+@section('content')
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20">
+        <div class="p-6 fade-in">
+            <div class="mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold mb-2">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                        Welcome Back!
+                    </span>
+                </h1>
+                <p class="text-gray-600 text-base sm:text-lg">Here's your medical workspace, Dr. {{ Auth::user()->name }}.</p>
             </div>
-        </header>
-        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 bg-blue-50">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">Area Dokter & Owner</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 shadow-sm">
-                    <h3 class="text-xl font-semibold text-blue-800 mb-3">Data Pasien</h3>
-                    <p class="text-gray-700 mb-4">Lihat informasi lengkap tentang semua pasien hewan.</p>
-                    <a href="{{ route('dokter.patients.index') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">Lihat Pasien</a>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {{-- Card: Total Patients --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium mb-1">Total Patients</p>
+                    <h3 class="text-3xl font-bold text-gray-900">{{ App\Models\Patient::count() }}</h3>
+                    <p class="text-green-600 text-sm font-medium mt-1">+{{ App\Models\Patient::where('created_at', '>=', now()->subWeek())->count() }} new this week</p>
                 </div>
-                <div class="bg-green-50 border border-green-200 rounded-lg p-6 shadow-sm">
-                    <h3 class="text-xl font-semibold text-green-800 mb-3">Rekam Medis & Resep</h3>
-                    <p class="text-gray-700 mb-4">Catat riwayat kesehatan, diagnosis, tindakan, dan resep obat.</p>
-                    <a href="{{ route('dokter.medical_records.index') }}" class="inline-flex items-center text-green-600 hover:text-green-800 font-medium">Kelola Rekam Medis</a>
-                </div>
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 shadow-sm">
-                    <h3 class="text-xl font-semibold text-purple-800 mb-3">Manajemen Staf</h3>
-                    <p class="text-gray-700 mb-4">Kelola data admin yang membantu operasional klinik.</p>
-                    <a href="{{ route('dokter.staff.index') }}" class="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium">Atur Staf</a>
-                </div>
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 shadow-sm">
-                    <h3 class="text-xl font-semibold text-yellow-800 mb-3">Ganti Password</h3>
-                    <p class="text-gray-700 mb-4">Perbarui kata sandi akun Anda untuk keamanan.</p>
-                    <a href="{{ route('dokter.change_password') }}" class="inline-flex items-center text-yellow-600 hover:text-yellow-800 font-medium">Ganti Password</a>
+                <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
                 </div>
             </div>
-        </main>
+        </div>
+
+        {{-- Card: Today's Queue --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium mb-1">Today's Queue</p>
+                    <h3 class="text-3xl font-bold text-gray-900">{{ App\Models\Queue::whereDate('queue_date', today())->count() }}</h3>
+                    <p class="text-orange-600 text-sm font-medium mt-1">{{ App\Models\Queue::whereDate('queue_date', today())->where('status', 'waiting')->count() }} waiting</p>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card: Medical Records --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium mb-1">Medical Records</p>
+                    <h3 class="text-3xl font-bold text-gray-900">{{ App\Models\MedicalRecord::count() }}</h3>
+                    <p class="text-blue-600 text-sm font-medium mt-1">{{ App\Models\MedicalRecord::where('updated_at', '>=', now()->startOfDay())->count() }} updated today</p>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card: Today's Appointments --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium mb-1">Today's Visits</p>
+                    <h3 class="text-3xl font-bold text-gray-900">{{ App\Models\Visit::whereDate('created_at', today())->count() }}</h3>
+                    <p class="text-purple-600 text-sm font-medium mt-1">{{ App\Models\Visit::whereDate('created_at', today())->where('status', 'pending')->count() }} pending</p>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+            </div>
+        </div>
     </div>
-    <script>
-        // Script untuk sidebar active state (jika mau)
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentPath = window.location.pathname;
-            document.querySelectorAll('aside .sidebar-nav-item a').forEach(link => {
-                const linkPath = link.getAttribute('href').replace(/\/$/, '');
-                const currentPathClean = currentPath.replace(/\/$/, '');
-                if (linkPath === currentPathClean || (linkPath !== '/' && currentPathClean.startsWith(linkPath + '/'))) {
-                    link.closest('.sidebar-nav-item').classList.add('active');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+</div>
+
+            {{-- Menggunakan grid-cols-1 di layar kecil dan grid-cols-2 di layar besar untuk menempatkan Recent Patients dan Quick Actions berdampingan --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {{-- Dibuat lebar seperti di gambar --}}
+                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Recent Patients</h3>
+                        <a href="{{ route('dokter.patients.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all</a>
+                    </div>
+                @php
+                    $recentPatients = App\Models\Patient::latest()->take(5)->get();
+                @endphp
+                <div class="space-y-4">
+                    @forelse($recentPatients as $patient)
+                    <div class="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-semibold text-sm">{{ strtoupper(substr($patient->name,0,1)) }}{{ strtoupper(substr(explode(' ', $patient->name)[1] ?? '',0,1)) }}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium text-gray-900 truncate">{{ $patient->name }}</p>
+                            <p class="text-sm text-gray-500 truncate">{{ $patient->species ?? 'Unknown Species' }}</p>
+                        </div>
+                        <span class="text-xs text-gray-400">{{ optional($patient->created_at)->diffForHumans() }}</span>
+                    </div>
+                    @empty
+                    {{-- Menggunakan card style yang lebih sederhana untuk meniru tampilan "No patients yet." di gambar --}}
+                    <div class="flex flex-col items-center justify-center min-h-[150px] bg-white rounded-xl text-center text-gray-400 border border-dashed border-gray-200">
+                        <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10h16V7H4zm0 0l-4 4m4-4l-4-4m16 4l4 4m-4-4l4-4"></path></svg>
+                        <p class="font-medium">No patients yet.</p>
+                        <p class="text-xs">Start by adding a new patient.</p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Dibuat lebar seperti di gambar --}}
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Quick Actions</h3>
+                </div>
+                {{-- Mengubah tata letak Quick Actions menjadi 1 kolom dengan item yang lebih besar --}}
+                <div class="grid grid-cols-2 gap-4"> 
+                    {{-- Perubahan styling untuk meniru tampilan Quick Actions di gambar --}}
+                    
+                    {{-- New Record --}}
+                    <a href="{{ route('dokter.medical_records.create') }}" class="flex flex-col items-center justify-center min-h-[100px] p-4 rounded-2xl transition-colors text-center border-2 border-blue-100 bg-blue-50/50 hover:bg-blue-100/70 space-y-2">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md mb-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">New Record</span>
+                    </a>
+                    
+                    {{-- View Queue --}}
+                    <a href="{{ route('dokter.queues.index') }}" class="flex flex-col items-center justify-center min-h-[100px] p-4 rounded-2xl transition-colors text-center border-2 border-green-100 bg-green-50/50 hover:bg-green-100/70 space-y-2">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md mb-2">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">View Queue</span>
+                    </a>
+                    
+                    {{-- Patient List --}}
+                    <a href="{{ route('dokter.patients.index') }}" class="flex flex-col items-center justify-center min-h-[100px] p-4 rounded-2xl transition-colors text-center border-2 border-purple-100 bg-purple-50/50 hover:bg-purple-100/70 space-y-2">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md mb-2">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Patient List</span>
+                    </a>
+                    
+                    {{-- Medical Records (List) --}}
+                    <a href="{{ route('dokter.medical_records.index') }}" class="flex flex-col items-center justify-center min-h-[100px] p-4 rounded-2xl transition-colors text-center border-2 border-indigo-100 bg-indigo-50/50 hover:bg-indigo-100/70 space-y-2">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md mb-2">
+                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">Medical Records</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+@endsection

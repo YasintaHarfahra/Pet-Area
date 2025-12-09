@@ -10,6 +10,8 @@ use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\VisitController;
+use App\Http\Controllers\QueueController;
+use App\Http\Controllers\DoctorDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,9 +24,19 @@ use App\Http\Controllers\VisitController;
 |
 */
 
-// Rute Halaman Utama (Welcome Page)
+// Rute Halaman Utama - Redirect ke login jika belum authenticated
 Route::get('/', function () {
-    return view('welcome');
+    if (Auth::check()) {
+        // Jika sudah login, redirect berdasarkan role
+        $user = Auth::user();
+        if ($user->role === 'dokter') {
+            return redirect()->route('dashboard.dokter');
+        } elseif ($user->role === 'admin') {
+            return redirect()->route('dashboard.admin');
+        }
+    }
+    // Jika belum login, redirect ke halaman login
+    return redirect()->route('login');
 });
 
 // Authentication Routes
@@ -60,12 +72,14 @@ Route::middleware(['auth'])->group(function () {
     // GROUP RUTE UNTUK DOKTER (OWNER)
     // Hanya user dengan role 'dokter' yang bisa mengakses rute di grup ini.
     Route::middleware('can:access-dokter-area')->group(function () {
-        Route::get('/dashboard-dokter', function () {
-            return view('dashboard-dokter');
-        })->name('dashboard.dokter');
+        Route::get('/dashboard-dokter', [DoctorDashboardController::class, 'index'])->name('dashboard.dokter');
 
         // Dokter: Data Pasien (Hanya Melihat)
         Route::get('/dokter/pasien', [PatientController::class, 'indexDoctor'])->name('dokter.patients.index');
+
+        // Dokter: Daftar Antrian
+        Route::get('/dokter/antrian', [QueueController::class, 'doctorIndex'])->name('dokter.queues.index');
+        Route::put('/dokter/antrian/{queue}/status', [QueueController::class, 'updateStatus'])->name('dokter.queues.update-status');
 
         // Dokter: Manajemen Rekam Medis (CRUD)
         Route::get('/dokter/rekam-medis', [MedicalRecordController::class, 'indexDoctor'])->name('dokter.medical_records.index');
@@ -126,5 +140,13 @@ Route::middleware(['auth'])->group(function () {
 
         // Admin: Edit Profil (placeholder)
         Route::get('/admin/profil', function() { return "Halaman Edit Profil Admin"; })->name('admin.profile.edit');
+
+        // Admin: Manajemen Antrian
+        Route::get('/admin/antrian', [QueueController::class, 'adminIndex'])->name('admin.queues.index');
+        Route::get('/admin/antrian/create', [QueueController::class, 'create'])->name('admin.queues.create');
+        Route::post('/admin/antrian', [QueueController::class, 'store'])->name('admin.queues.store');
+        Route::get('/admin/antrian/{queue}', [QueueController::class, 'show'])->name('admin.queues.show');
+        Route::delete('/admin/antrian/{queue}', [QueueController::class, 'cancel'])->name('admin.queues.cancel');
+        Route::get('/admin/antrian/data', [QueueController::class, 'getQueueData'])->name('admin.queues.data');
     });
 });

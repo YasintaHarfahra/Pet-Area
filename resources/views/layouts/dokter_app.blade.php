@@ -3,146 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Klinik Hewan - Dokter')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Pet Area Clinic - Doctor')</title>
     @vite('resources/css/app.css')
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom scrollbar for a cleaner look */
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .sidebar-nav-item.active > a { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .sidebar-nav-item.active > a svg {
+            color: white !important;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .table-row-hover:hover {
+            background-color: #f8fafc;
+            transform: scale(1.005);
+            transition: all 0.2s ease;
+        }
+
+        /* Queue Status Badges */
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        
+        .status-waiting {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white;
+        }
+        
+        .status-in-progress {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .status-completed {
+            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+            color: white;
+        }
+
+        .status-cancelled {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Navigation Styles */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #374151;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: #F9FAFB;
+            color: #111827;
+        }
+
+        .nav-link.active {
+            background-color: #EEF2FF;
+            color: #4F46E5;
+            font-weight: 500;
+        }
+
+        .nav-link svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #9CA3AF;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover svg {
+            color: #6B7280;
+        }
+
+        .nav-link.active svg {
+            color: #4F46E5;
+        }
+
+        /* Section Headers */
+        .nav-section-header {
+            padding: 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #9CA3AF;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Shadows and Elevation */
+        aside {
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
+        
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #4a007a; /* Darker purple */
+            background: transparent;
         }
+        
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #8e24aa; /* Medium purple */
-            border-radius: 3px;
+            background: #E5E7EB;
+            border-radius: 9999px;
         }
+        
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a348d6; /* Lighter purple on hover */
-        }
-
-        /* Modern active state for sidebar items */
-        .sidebar-nav-item.active a {
-            background-color: theme('colors.purple.700'); /* A slightly brighter purple for active */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* subtle shadow */
-            position: relative;
-        }
-        /* Optional: Indicator line for active state */
-        .sidebar-nav-item.active a::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px; /* Thickness of the indicator line */
-            background-color: theme('colors.purple.300'); /* Bright accent color */
-            border-radius: 0 4px 4px 0;
-        }
-
-        /* Hover effect for cards */
-        .card-hover-effect {
-            transition: all 0.3s ease-in-out;
-        }
-        .card-hover-effect:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background: #D1D5DB;
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-gray-50 font-sans text-gray-800">
+<body class="antialiased bg-gray-50">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        @include('layouts._sidebar_dokter')
 
-    {{-- Sidebar Dokter (Modern Purple Theme) --}}
-    <aside class="w-64 bg-purple-900 text-white flex flex-col p-4 shadow-2xl custom-scrollbar transition-all duration-300 ease-in-out">
-        <div class="flex items-center mb-8 px-2 py-4 border-b border-purple-800/50 pb-5">
-            <span class="material-icons text-purple-300 text-3xl mr-3 transform rotate-6 hover:rotate-0 transition-transform duration-300">medical_services</span>
-            <h2 class="text-2xl font-extrabold tracking-wide text-gray-50">Klinik Hewan</h2>
-        </div>
-        <nav class="flex-1 space-y-2">
-            <h3 class="text-xs uppercase text-purple-200/70 px-2 pt-4 pb-2 font-semibold">Menu Dokter</h3>
-            <ul class="space-y-1">
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dashboard.dokter') }}" class="flex items-center px-4 py-3 hover:bg-purple-800 rounded-md transition-all duration-200 ease-in-out text-lg">
-                        <span class="material-icons text-xl mr-4 opacity-80">dashboard</span>
-                        Dashboard
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.patients.index') }}" class="flex items-center px-4 py-3 hover:bg-purple-800 rounded-md transition-all duration-200 ease-in-out text-lg">
-                        <span class="material-icons text-xl mr-4 opacity-80">folder_open</span>
-                        Data Pasien
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.medical_records.index') }}" class="flex items-center px-4 py-3 hover:bg-purple-800 rounded-md transition-all duration-200 ease-in-out text-lg">
-                        <span class="material-icons text-xl mr-4 opacity-80">notes</span>
-                        Rekam Medis & Resep
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.staff.index') }}" class="flex items-center px-4 py-3 hover:bg-purple-800 rounded-md transition-all duration-200 ease-in-out text-lg">
-                        <span class="material-icons text-xl mr-4 opacity-80">group</span>
-                        Manajemen Staf
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="{{ route('dokter.change_password') }}" class="flex items-center px-4 py-3 hover:bg-purple-800 rounded-md transition-all duration-200 ease-in-out text-lg">
-                        <span class="material-icons text-xl mr-4 opacity-80">lock</span>
-                        Ganti Password
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-100 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="relative flex items-center w-96">
+                            <svg class="absolute left-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input type="text" placeholder="Search patients, records..." 
+                                   class="pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 w-full focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white">
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5-5V7a5 5 0 00-10 0v5l-5 5h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
 
-    {{-- Main Content Area --}}
-    <div class="flex-1 flex flex-col overflow-hidden">
-        {{-- Topbar Dokter (Modern & Clean) --}}
-        <header class="bg-white p-5 shadow-sm flex items-center justify-between border-b border-gray-100">
-            <h1 class="text-2xl font-bold text-gray-800">@yield('header_title')</h1>
-            <div class="flex items-center space-x-6">
-                <span class="text-gray-600 text-base font-medium">Hai, <span class="font-semibold">{{ Auth::user()->name }}</span></span>
-                <div class="relative group">
-                    <img src="https://via.placeholder.com/40/DDA0DD/FFFFFF?text=Dr" alt="User Profile" class="w-10 h-10 rounded-full border-2 border-purple-500 cursor-pointer shadow-md transition-all duration-200 group-hover:scale-105">
-                    <div class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform scale-95 group-hover:scale-100 origin-top-right">
-                        <a href="{{ route('dokter.change_password') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Ganti Password</a>
-                        <div class="border-t border-gray-100 my-1"></div>
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">Logout</button>
-                        </form>
+                        <!-- User Menu -->
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-semibold text-sm">{{ substr(Auth::user()->name, 0, 2) }}</span>
+                                </div>
+                                <div class="hidden md:block">
+                                    <div class="text-sm font-semibold text-gray-900">{{ Auth::user()->name }}</div>
+                                    <div class="text-xs text-gray-500">Doctor</div>
+                                </div>
+                            </div>
+
+                            <!-- Logout Button -->
+                            <form action="{{ route('logout') }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" 
+                                        class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
+                                        title="Logout">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        {{-- Page Content --}}
-        <main class="flex-1 overflow-x-hidden overflow-y-auto p-8 bg-purple-50/20"> {{-- Sangat terang, hampir putih --}}
-            @yield('content')
-        </main>
-    </div>
+            <!-- Main Content -->
+            <main class="flex-1 p-6 overflow-x-hidden overflow-y-auto bg-pink-50">
+                @yield('content')
+            </main>
+        </div>
+</div>
 
-    <script>
-        // Script to set active class on sidebar items
+<script>
         document.addEventListener('DOMContentLoaded', function() {
             const currentPath = window.location.pathname;
-            document.querySelectorAll('aside .sidebar-nav-item a').forEach(link => {
+            document.querySelectorAll('.sidebar-nav-item a').forEach(link => {
                 const linkPath = link.getAttribute('href').replace(/\/$/, '');
                 const currentPathClean = currentPath.replace(/\/$/, '');
-
                 if (linkPath === currentPathClean || (linkPath !== '/' && currentPathClean.startsWith(linkPath + '/'))) {
                     link.closest('.sidebar-nav-item').classList.add('active');
                 }
             });
-
-            // Smooth scroll for internal links (if any)
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    document.querySelector(this.getAttribute('href')).scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                });
+            
+            // Add smooth transitions to all interactive elements
+            document.querySelectorAll('button, a, .card-hover').forEach(el => {
+                el.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
             });
         });
     </script>

@@ -39,10 +39,30 @@ class MedicalRecordController extends Controller
     }
 
     // DOKTER: Menampilkan form untuk menambah rekam medis baru
-    public function create()
+    public function create(Request $request)
     {
         Gate::authorize('manage-medical-records'); // Hanya dokter yang bisa membuat
-        $patients = Patient::orderBy('name')->get(); // Ambil semua pasien untuk dropdown
+        
+        // Jika ada patient_id dari antrian, langsung gunakan pasien tersebut
+        if ($request->has('patient_id')) {
+            $patient = Patient::findOrFail($request->patient_id);
+            $queue_id = $request->queue_id;
+            
+            // Auto update queue status to in-progress ketika membuka form dari queue waiting
+            // Jika ada queue_id dan status masih waiting, berarti ini dari tab "Menunggu"
+            if ($queue_id) {
+                $queue = \App\Models\Queue::find($queue_id);
+                if ($queue && $queue->status === 'waiting') {
+                    $queue->status = 'in-progress';
+                    $queue->save();
+                }
+            }
+            
+            return view('dokter.medical_records.create', compact('patient', 'queue_id'));
+        }
+
+        // Jika tidak ada patient_id, tampilkan form pilih pasien
+        $patients = Patient::orderBy('name')->get();
         return view('dokter.medical_records.create', compact('patients'));
     }
 
@@ -59,9 +79,10 @@ class MedicalRecordController extends Controller
             'treatment' => 'nullable|string',
             'prescription' => 'nullable|string', // Untuk resep obat
             'notes' => 'nullable|string',
+            'queue_id' => 'nullable|exists:queues,id',
         ]);
 
-        MedicalRecord::create([
+        $medicalRecord = MedicalRecord::create([
             'patient_id' => $request->patient_id,
             'doctor_id' => Auth::id(), // Dokter yang sedang login otomatis menjadi pencatat
             'visit_date' => $request->visit_date,
@@ -72,7 +93,17 @@ class MedicalRecordController extends Controller
             'notes' => $request->notes,
         ]);
 
-        return redirect()->route('dokter.medical_records.index')->with('success', 'Rekam medis berhasil ditambahkan!');
+        // Update queue status to completed jika ada queue_id
+        if ($request->has('queue_id')) {
+            $queue = \App\Models\Queue::find($request->queue_id);
+            if ($queue) {
+                $queue->status = 'completed';  // Auto set to completed
+                $queue->medical_record_id = $medicalRecord->id;
+                $queue->save();
+            }
+        }
+
+        return redirect()->route('dokter.queues.index')->with('success', 'Rekam medis berhasil disimpan dan pemeriksaan ditandai selesai!');
     }
 
     // DOKTER: Menampilkan form untuk mengedit rekam medis
@@ -108,7 +139,14 @@ class MedicalRecordController extends Controller
 
         $medicalRecord->update($request->all());
 
-        return redirect()->route('dokter.medical_records.index')->with('success', 'Rekam medis berhasil diperbarui!');
+        // Update queue status to completed jika ada queue yang terkait dengan rekam medis ini
+        $queue = \App\Models\Queue::where('medical_record_id', $medicalRecord->id)->first();
+        if ($queue && $queue->status !== 'completed') {
+            $queue->status = 'completed';
+            $queue->save();
+        }
+
+        return redirect()->route('dokter.queues.index')->with('success', 'Rekam medis berhasil diperbarui dan pemeriksaan ditandai selesai!');
     }
 
     // DOKTER: Menghapus rekam medis dari database
