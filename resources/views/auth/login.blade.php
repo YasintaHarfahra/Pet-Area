@@ -12,7 +12,7 @@
         }
         
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #970747 0%, #7a0538 100%);
             position: fixed;
             top: 0;
             left: 0;
@@ -120,10 +120,10 @@
             height: 100%;
             top: 0;
             left: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #970747 0%, #7a0538 100%);
             border-radius: 24px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(151, 7, 71, 0.4);
             z-index: 1;
         }
         
@@ -144,8 +144,8 @@
         
         .input-field:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: #970747;
+            box-shadow: 0 0 0 4px rgba(151, 7, 71, 0.1);
             transform: translateY(-1px);
         }
         
@@ -165,14 +165,14 @@
         .input-field:not(:placeholder-shown) + .input-label {
             top: -8px;
             font-size: 12px;
-            color: #667eea;
+            color: #970747;
             font-weight: 500;
         }
         
         .btn-login {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #970747 0%, #7a0538 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -186,7 +186,7 @@
         
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 12px 24px rgba(151, 7, 71, 0.4);
         }
         
         .btn-login:active {
@@ -235,7 +235,7 @@
         }
         
         .password-toggle:hover {
-            color: #667eea;
+            color: #970747;
         }
     </style>
 </head>
@@ -250,7 +250,7 @@
 
     <div class="login-container p-8 rounded-2xl w-full max-w-md">
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#970747] to-purple-600 rounded-2xl mb-4">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
@@ -315,10 +315,10 @@
 
             <div class="flex items-center justify-between mb-6 text-sm">
                 <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" name="remember" id="remember" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" @checked($initialRemember)>
+                    <input type="checkbox" name="remember" id="remember" class="w-4 h-4 text-[#970747] bg-gray-100 border-gray-300 rounded focus:ring-[#970747] focus:ring-2" @checked($initialRemember)>
                     <span class="ml-2 text-gray-700">Remember me</span>
                 </label>
-                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">Forgot password?</a>
+                <span id="forgotPasswordContainer"></span>
             </div>
 
             <button type="submit" class="btn-login">
@@ -345,6 +345,24 @@
         }
 
         document.addEventListener('DOMContentLoaded', (event) => {
+        // Tambahkan/hapus link 'Forgot password?' sesuai role
+        function updateForgotPasswordLink(role) {
+            const container = document.getElementById('forgotPasswordContainer');
+            const existing = document.getElementById('forgotPasswordLink');
+            if (role === 'dokter') {
+                if (!existing) {
+                    const link = document.createElement('a');
+                    link.href = "{{ route('forgot.password') }}";
+                    link.className = 'text-[#970747] hover:text-[#7a0538] font-medium transition-colors';
+                    link.id = 'forgotPasswordLink';
+                    link.textContent = 'Forgot password?';
+                    link.style.cursor = 'pointer';
+                    container.appendChild(link);
+                }
+            } else {
+                if (existing) existing.remove();
+            }
+        }
             const roleToggle = document.getElementById('roleToggle');
             const roleTypeInput = document.getElementById('roleType');
             const loginFieldLabel = document.getElementById('loginFieldLabel');
@@ -369,7 +387,10 @@
                     adminLabel.style.color = 'white';
                     toggleHandle.style.left = '50%';
                 }
+                updateForgotPasswordLink(currentRole);
             }
+            // Initial state
+            updateForgotPasswordLink(roleTypeInput.value || 'dokter');
 
             // Initial state
             const initialRole = roleTypeInput.value || 'dokter';

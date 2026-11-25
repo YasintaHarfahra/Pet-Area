@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Queue;
-use App\Models\Patient;
+use App\Models\Pet;
+use App\Models\MedicalRecordDraft;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class QueueController extends Controller
 {
@@ -21,12 +23,24 @@ class QueueController extends Controller
         return view('admin.queues.index', compact('queues'));
     }
 
-    // Tampilkan daftar antrian untuk dokter
+    // Tampilkan daftar antrian untuk dokter (dengan draft detection)
     public function doctorIndex()
     {
-        $queues = Queue::with('patient', 'medicalRecord')
+        $queues = Queue::with([
+            'patient', 
+            'medicalRecord',
+            'medicalRecordDraft' => function ($query) {
+                $query->whereIn('status', ['draft', 'in-progress']);
+            },
+            'doctor'
+        ])
             ->whereDate('queue_date', today())
             ->notCancelled()
+            ->orderByRaw("CASE 
+                WHEN status = 'in-progress' THEN 1 
+                WHEN status = 'waiting' THEN 2 
+                ELSE 3 
+            END")
             ->orderBy('queue_number')
             ->get();
 
@@ -57,7 +71,7 @@ class QueueController extends Controller
     // Tampilkan form tambah antrian
     public function create()
     {
-        $patients = Patient::all();
+        $patients = Pet::all();
         return view('admin.queues.create', compact('patients'));
     }
 
@@ -66,7 +80,7 @@ class QueueController extends Controller
     {
         $search = $request->get('q', '');
 
-        $query = Patient::query();
+        $query = Pet::query();
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -77,7 +91,7 @@ class QueueController extends Controller
 
         $patients = $query->orderBy('name')
             ->limit(20)
-            ->get(['id', 'name', 'medical_record_number', 'species', 'owner_name']);
+            ->get(['id_pet', 'name', 'medical_record_number', 'species', 'owner_name']);
 
         return response()->json($patients);
     }
@@ -86,13 +100,13 @@ class QueueController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'patient_id' => 'required|exists:patients,id',
+            'patient_id' => 'required|exists:pets,id_pet',
             'complaint' => 'nullable|string',
             'queue_date' => 'required|date'
         ]);
 
         $queue = new Queue([
-            'patient_id' => $request->patient_id,
+            'id_pet' => $request->patient_id,
             'queue_date' => $request->queue_date,
             'complaint' => $request->complaint,
             'queue_number' => Queue::generateQueueNumber($request->queue_date),
@@ -120,7 +134,7 @@ class QueueController extends Controller
             return response()->json([
                 'message' => 'Status antrian berhasil diupdate',
                 'queue' => [
-                    'id' => $queue->id,
+                    'id' => $queue->id_queue,
                     'old_status' => $oldStatus,
                     'new_status' => $queue->status
                 ]

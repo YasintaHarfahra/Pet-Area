@@ -31,7 +31,7 @@
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <option value="">-- Tidak Terkait Pasien --</option>
                 @foreach ($patients as $patient)
-                    <option value="{{ $patient->id }}" {{ old('patient_id') == $patient->id ? 'selected' : '' }}>
+                    <option value="{{ $patient->id_pet }}" {{ old('patient_id') == $patient->id_pet ? 'selected' : '' }}>
                         {{ $patient->name }} (Pemilik: {{ $patient->owner_name }})
                     </option>
                 @endforeach
@@ -65,7 +65,7 @@
 
         <div class="flex items-center justify-between">
             <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-150">
+                    class="bg-[#970747] hover:bg-[#7a0538] text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-150">
                 Simpan Transaksi
             </button>
             <a href="{{ route('admin.transactions.index') }}" class="text-gray-600 hover:text-gray-800 font-medium">Batal</a>

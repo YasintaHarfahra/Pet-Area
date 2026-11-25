@@ -19,9 +19,9 @@ class Visit extends Model
     ];
 
     // Relasi: Kunjungan dimiliki oleh satu pasien
-    public function patient()
+    public function pet()
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(Pet::class);
     }
 
     // Relasi: Kunjungan dicatat oleh satu admin

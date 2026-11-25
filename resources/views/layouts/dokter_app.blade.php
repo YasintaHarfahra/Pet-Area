@@ -4,27 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="view-transition" content="same-origin">
     <title>@yield('title', 'Pet Area Clinic - Doctor')</title>
     @vite('resources/css/app.css')
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @stack('styles')
     <style>
         * {
             font-family: 'Inter', sans-serif;
         }
         
+        /* ================================================
+           PAGE TRANSITION ANIMATIONS
+           ================================================ */
+        
+        @keyframes pageSlideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-content {
+            animation: pageSlideIn 0.4s ease-out forwards;
+        }
+        
+        .navigating .page-content {
+            opacity: 0.6;
+            transform: scale(0.995);
+            transition: all 0.2s ease;
+        }
+        
+        /* Loading bar */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            height: 3px;
+            background: linear-gradient(90deg, #970747, #ec4899, #970747);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        
+        .page-loader.active { transform: scaleX(0.7); }
+        .page-loader.complete { transform: scaleX(1); transition: transform 0.2s ease; }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* View Transitions API */
+        @view-transition { navigation: auto; }
+        ::view-transition-old(root) { animation: 0.25s ease-out both fade-out; }
+        ::view-transition-new(root) { animation: 0.25s ease-out both fade-in; }
+        @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* All clickable elements smooth */
+        a, button, .btn, [role="button"] {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* ================================================
+           EXISTING STYLES
+           ================================================ */
+        
         .sidebar-nav-item.active > a { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #7a0538;
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            border-left: 4px solid white;
+            box-shadow: 0 4px 12px rgba(151, 7, 71, 0.3);
         }
         .sidebar-nav-item.active > a svg {
             color: white !important;
         }
         
+        /* Custom scrollbar - Deep Magenta Theme */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #7a0538; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
         
         .card-hover {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -32,40 +95,45 @@
         
         .card-hover:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+            box-shadow: 0 12px 24px rgba(151, 7, 71, 0.15);
         }
         
         .gradient-text {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            background: linear-gradient(135deg, #970747 0%, #7a0538 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            background: #970747;
             color: white;
             transition: all 0.3s ease;
+            border-radius: 0.5rem;
         }
         
         .btn-primary:hover {
+            background: #7a0538;
             transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(151, 7, 71, 0.4);
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: white;
+            background: white;
+            border: 2px solid #970747;
+            color: #970747;
             transition: all 0.3s ease;
+            border-radius: 0.5rem;
         }
         
         .btn-secondary:hover {
+            background: #FDF2F8;
             transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 8px 20px rgba(151, 7, 71, 0.2);
         }
         
         .table-row-hover:hover {
-            background-color: #f8fafc;
+            background-color: #FDF2F8;
             transform: scale(1.005);
             transition: all 0.2s ease;
         }
@@ -85,12 +153,12 @@
         }
         
         .status-in-progress {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            background: linear-gradient(135deg, #970747 0%, #7a0538 100%);
             color: white;
         }
         
         .status-completed {
-            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
             color: white;
         }
 
@@ -121,13 +189,13 @@
         }
 
         .nav-link:hover {
-            background-color: #F9FAFB;
+            background-color: #FDF2F8;
             color: #111827;
         }
 
         .nav-link.active {
-            background-color: #EEF2FF;
-            color: #4F46E5;
+            background-color: #FDF2F8;
+            color: #970747;
             font-weight: 500;
         }
 
@@ -139,11 +207,11 @@
         }
 
         .nav-link:hover svg {
-            color: #6B7280;
+            color: #970747;
         }
 
         .nav-link.active svg {
-            color: #4F46E5;
+            color: #970747;
         }
 
         /* Section Headers */
@@ -167,90 +235,151 @@
         }
         
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
+            background: #7a0538;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #E5E7EB;
+            background: rgba(255,255,255,0.3);
             border-radius: 9999px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #D1D5DB;
+            background: rgba(255,255,255,0.5);
         }
     </style>
 </head>
-<body class="antialiased bg-gray-50">
-    <div class="min-h-screen flex">
-        <!-- Sidebar -->
+<body class="bg-[#FDF2F8]" style="font-family: 'Inter', 'Segoe UI', 'Arial', 'sans-serif'; font-size: 15px;">
+    {{-- Page Loading Bar --}}
+    <div class="page-loader" id="pageLoader"></div>
+    
+    <div class="flex min-h-screen">
+        {{-- Sidebar - Sticky --}}
         @include('layouts._sidebar_dokter')
 
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col">
-            <!-- Header -->
-            <header class="bg-white border-b border-gray-100 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="relative flex items-center w-96">
-                            <svg class="absolute left-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                            <input type="text" placeholder="Search patients, records..." 
-                                   class="pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 w-full focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white">
-                        </div>
+        {{-- Main Content Area --}}
+        <div class="flex-1 flex flex-col min-h-screen">
+            {{-- Topbar ala Admin --}}
+            <header class="h-16 bg-white border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-40">
+                {{-- LEFT: Page Title --}}
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-slate-800">
+                        @if(request()->routeIs('dokter.dashboard'))
+                            Dashboard
+                        @elseif(request()->routeIs('rekam-medis.*'))
+                            Rekam Medis
+                        @elseif(request()->routeIs('riwayat.*'))
+                            Riwayat Pasien
+                        @elseif(request()->routeIs('laporan.*'))
+                            Laporan Medis
+                        @elseif(request()->routeIs('admin.*'))
+                            Kelola Admin
+                        @else
+                            Dokter Panel
+                        @endif
+                    </h1>
+                </div>
+
+                {{-- RIGHT: Info & Status --}}
+                <div class="flex items-center gap-6">
+                    {{-- Quick Status Badges --}}
+                    <div class="hidden lg:flex items-center gap-3">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                            Klinik Buka
+                        </span>
                     </div>
-                    
-                    <div class="flex items-center space-x-4">
-                        <!-- Notifications -->
-                        <button class="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5-5V7a5 5 0 00-10 0v5l-5 5h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
-
-                        <!-- User Menu Dropdown -->
-                        <div class="relative" id="user-menu-container">
-                            <button id="user-menu-button" class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-50 transition-colors focus:outline-none">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                    <span class="text-white font-semibold text-sm">{{ substr(Auth::user()->name, 0, 2) }}</span>
-                                </div>
-                                <div class="hidden md:block text-left">
-                                    <div class="text-sm font-semibold text-gray-900">{{ Auth::user()->name }}</div>
-                                    <div class="text-xs text-gray-500">Doctor</div>
-                                </div>
-                                <svg class="w-4 h-4 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-
-                            <!-- Dropdown Menu -->
-                            <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-1 border border-gray-100 z-50">
-                                <a href="{{ route('dokter.change_password') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors">
-                                    Ganti Kata Sandi
-                                </a>
-                                <div class="border-t border-gray-100 my-1"></div>
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="guard" value="dokter">
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                                        Logout
-                                    </button>
-                                </form>
-                            </div>
+                    {{-- Date & Time --}}
+                    <div class="text-right border-l border-gray-200 pl-6">
+                        <div id="topbar-time" class="text-lg font-bold text-slate-800 tabular-nums">--:--</div>
+                        <div id="topbar-date" class="text-xs text-slate-500">Loading...</div>
+                    </div>
+                    {{-- User Profile --}}
+                    <div class="flex items-center gap-3 pl-6 border-l border-gray-200">
+                        <div class="w-9 h-9 bg-gradient-to-br from-[#970747] to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                            <span class="text-white font-semibold text-sm">
+                                {{ strtoupper(substr(Auth::guard('dokter')->user()->name ?? 'D', 0, 2)) }}
+                            </span>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="text-sm font-semibold text-slate-800">{{ Auth::guard('dokter')->user()->name ?? 'Dokter' }}</div>
+                            <div class="text-xs text-slate-500">Dokter</div>
                         </div>
                     </div>
                 </div>
             </header>
+            <script>
+                // Update waktu real-time
+                function updateTopbarDateTime() {
+                    const now = new Date();
+                    const pad = n => n.toString().padStart(2, '0');
+                    document.getElementById('topbar-time').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
+                    document.getElementById('topbar-date').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                }
+                setInterval(updateTopbarDateTime, 1000);
+                updateTopbarDateTime();
+            </script>
 
-            <!-- Main Content -->
-            <main class="flex-1 p-6 overflow-x-hidden overflow-y-auto bg-pink-50">
+            {{-- Main Content --}}
+            <main class="flex-1 p-6 bg-[#FDF2F8] page-content">
                 @yield('content')
             </main>
         </div>
-</div>
+    </div>
+
+{{-- SweetAlert2 CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    // ================================================
+    // PAGE TRANSITION & SMOOTH NAVIGATION
+    // ================================================
+    (function() {
+        const loader = document.getElementById('pageLoader');
+        
+        function startLoading() {
+            document.body.classList.add('navigating');
+            loader.classList.add('active');
+        }
+        
+        function completeLoading() {
+            loader.classList.remove('active');
+            loader.classList.add('complete');
+            setTimeout(() => {
+                loader.classList.remove('complete');
+                document.body.classList.remove('navigating');
+            }, 300);
+        }
+        
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (!link) return;
+            if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+            if (link.target === '_blank') return;
+            if (link.href.startsWith('#') || link.href.includes('#')) return;
+            if (link.href.startsWith('javascript:')) return;
+            if (link.href.startsWith('mailto:') || link.href.startsWith('tel:')) return;
+            if (!link.href.startsWith(window.location.origin)) return;
+            if (link.hasAttribute('download')) return;
+            if (link.href === window.location.href) return;
+            
+            startLoading();
+        });
+        
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.method.toLowerCase() !== 'get') {
+                startLoading();
+            }
+        });
+        
+        window.addEventListener('beforeunload', function() { completeLoading(); });
+        window.addEventListener('popstate', function() { startLoading(); });
+        window.addEventListener('load', function() { completeLoading(); });
+    })();
+
+    // ================================================
+    // EXISTING FUNCTIONALITY
+    // ================================================
         document.addEventListener('DOMContentLoaded', function() {
             const currentPath = window.location.pathname;
             document.querySelectorAll('.sidebar-nav-item a').forEach(link => {
@@ -283,8 +412,61 @@
                     }
                 });
             }
+            
+            // Global SweetAlert for delete forms
+            document.querySelectorAll('form[onsubmit*="confirm"]').forEach(form => {
+                form.onsubmit = null;
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    Swal.fire({
+                        title: 'Konfirmasi Hapus',
+                        text: 'Apakah Anda yakin ingin menghapus data ini?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#EF4444',
+                        cancelButtonColor: '#6B7280',
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
         });
     </script>
+
+    {{-- Global: Auto-update sidebar badge antrian (semua halaman dokter) --}}
+    <script>
+    (function() {
+        const SIDEBAR_POLL = 15000; // 15 detik
+        const pollUrl = @json(route('dokter.api.antrian.poll'));
+
+        async function updateSidebarBadge() {
+            try {
+                const res = await fetch(pollUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!res.ok) return;
+                const data = await res.json();
+                const badge = document.getElementById('sidebar-waiting-badge');
+                if (badge) {
+                    badge.textContent = data.waiting_count;
+                    badge.style.display = data.waiting_count > 0 ? '' : 'none';
+                }
+            } catch(e) {}
+        }
+
+        // Hanya jalankan global poll jika BUKAN di halaman antrian (halaman antrian punya poll sendiri)
+        if (!window.location.pathname.includes('/antrian')) {
+            setInterval(updateSidebarBadge, SIDEBAR_POLL);
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) updateSidebarBadge();
+            });
+        }
+    })();
+    </script>
+
     @stack('scripts')
 </body>
 </html>

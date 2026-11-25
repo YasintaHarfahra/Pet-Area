@@ -9,77 +9,47 @@ class Queue extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id_queue';
+
     protected $fillable = [
+        'id_pet',
         'patient_id',
-        'queue_number',
-        'status',
-        'queue_date',
+        'id_doctor',
+        'owner_id',
         'complaint',
-        'medical_record_id'
-    ];
-
-    protected $dates = [
+        'status', // <--- WAJIB ADA INI!
+        'notes',
+        'queue_number',
         'queue_date',
-        'created_at',
-        'updated_at'
     ];
 
-    // Relasi dengan Patient
-    public function patient()
-    {
-        return $this->belongsTo(Patient::class);
-    }
-
-    // Relasi dengan MedicalRecord (jika nanti dibuat)
+    // Relasi ke rekam medis berdasarkan queue_id
     public function medicalRecord()
     {
-        return $this->hasOne(MedicalRecord::class);
+        return $this->hasOne(MedicalRecord::class, 'id_queue');
     }
 
-    // Scope untuk mendapatkan antrian hari ini
-    public function scopeToday($query)
-    {
-        return $query->whereDate('queue_date', today());
+    public function pet() {
+        return $this->belongsTo(Pet::class, 'id_pet')->withTrashed();
     }
-
-    // Scope untuk antrian yang masih menunggu
-    public function scopeWaiting($query)
-    {
-        return $query->where('status', 'waiting');
+    
+    public function doctor() {
+        return $this->belongsTo(User::class, 'id_doctor');
     }
+    // ... relasi lain ...
 
-    // Scope untuk antrian yang sedang dalam proses
-    public function scopeInProgress($query)
-    {
-        return $query->where('status', 'in-progress');
-    }
-
-    // Scope untuk antrian yang selesai
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', 'completed');
-    }
-
-    // Scope untuk antrian yang dibatalkan
-    public function scopeCancelled($query)
-    {
-        return $query->where('status', 'cancelled');
-    }
-
-    // Scope untuk antrian yang belum dibatalkan
-    public function scopeNotCancelled($query)
-    {
-        return $query->where('status', '!=', 'cancelled');
-    }
-
-    // Generate nomor antrian untuk hari ini
+    /**
+     * Generate the next queue number for a given date.
+     * Format: Q-YYYYMMDD-NNN (e.g., Q-20240610-001)
+     *
+     * @param string $date (format: Y-m-d)
+     * @return string
+     */
     public static function generateQueueNumber($date)
     {
-        $lastQueue = self::whereDate('queue_date', $date)
-            ->notCancelled()
-            ->orderBy('queue_number', 'desc')
-            ->first();
-
-        return $lastQueue ? $lastQueue->queue_number + 1 : 1;
+        // Count existing queues for the given date
+        $count = self::where('queue_date', $date)->count();
+        // Return the next integer queue number for the day
+        return $count + 1;
     }
 }

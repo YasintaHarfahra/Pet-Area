@@ -13,7 +13,7 @@
         <div class="mb-4">
             <p class="text-gray-600"><strong>Pasien:</strong> {{ $visit->patient->name ?? 'N/A' }} (Pemilik: {{ $visit->patient->owner_name ?? 'N/A' }})</p>
             @if($visit->patient)
-                <a href="{{ route('patients.show', $visit->patient->id) }}" class="text-blue-600 hover:underline text-sm">Lihat Detail Pasien</a>
+                <a href="{{ route('patients.show', $visit->patient->id) }}" class="text-[#970747] hover:underline text-sm">Lihat Detail Pasien</a>
             @endif
         </div>
         <div class="mb-4">
@@ -37,7 +37,7 @@
                 <p class="mb-2">Rekam Medis ditemukan untuk kunjungan ini:</p>
                 <p class="mb-2 text-gray-700"><strong>Diagnosis:</strong> {{ Str::limit($relatedMedicalRecord->diagnosis, 100) ?? '-' }}</p>
                 <p class="mb-2 text-gray-700"><strong>Dokter:</strong> {{ $relatedMedicalRecord->doctor->name ?? 'N/A' }}</p>
-                <a href="{{ route('medical_records.show', $relatedMedicalRecord->id) }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md text-sm mt-3">
+                <a href="{{ route('medical_records.show', $relatedMedicalRecord->id) }}" class="inline-block bg-[#970747] hover:bg-[#970747] text-white font-bold py-2 px-4 rounded-md text-sm mt-3">
                     Lihat Detail Rekam Medis
                 </a>
             </div>

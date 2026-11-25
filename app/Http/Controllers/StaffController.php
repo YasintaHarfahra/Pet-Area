@@ -54,8 +54,8 @@ class StaffController extends Controller
         if ($staff->role !== 'admin') { abort(403, 'Anda tidak diizinkan mengedit user ini.'); }
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($staff->id)],
-            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($staff->id)],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($staff->id_user)],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($staff->id_user)],
             'password' => 'nullable|string|min:8|confirmed',
         ]);
         $staff->name = $request->name;
@@ -69,7 +69,7 @@ class StaffController extends Controller
     public function destroy(User $staff)
     {
         Gate::authorize('manage-staff');
-        if ($staff->role !== 'admin' || $staff->id === Auth::id()) { abort(403, 'Anda tidak diizinkan menghapus user ini.'); }
+        if ($staff->role !== 'admin' || $staff->id_user === Auth::id()) { abort(403, 'Anda tidak diizinkan menghapus user ini.'); }
         $staff->delete();
         return redirect()->route('dokter.staff.index')->with('success', 'Admin berhasil dihapus!');
     }

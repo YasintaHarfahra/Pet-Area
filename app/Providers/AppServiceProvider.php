@@ -3,8 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate; // Import Gate
-use App\Models\User; // Penting: Import model User
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,7 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Define Gates here, ini akan berfungsi sama seperti di AuthServiceProvider
+        // Deteksi N+1 query saat development
+        Model::preventLazyLoading(!app()->isProduction());
+
+        // Define Gates here
         // Gate untuk akses dashboard dan area spesifik role
         Gate::define('access-dokter-area', function (User $user) { // Gunakan type-hint User
             return $user->role === 'dokter';

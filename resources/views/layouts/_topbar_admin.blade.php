@@ -1,75 +1,88 @@
-<header class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-        <div class="relative flex items-center w-96">
-            <svg class="absolute left-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <input type="text" placeholder="Search patients, records, transactions..." 
-                   class="pl-10 pr-4 py-3 rounded-xl border border-gray-200 w-full focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 bg-gray-50 focus:bg-white">
-        </div>
-    </div>
+{{-- TOPBAR ADMIN - CLEAN MINIMALIST DESIGN --}}
+<header class="h-16 bg-white border-b border-gray-100 px-8 flex items-center justify-between sticky top-0 z-40">
     
-    <div class="flex items-center space-x-6">
-        <!-- Notifications -->
-        <div class="relative">
-            <button class="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5-5V7a5 5 0 00-10 0v5l-5 5h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                </svg>
-                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-        </div>
+    {{-- LEFT: Page Title --}}
+    <div class="flex items-center">
+        <h1 class="text-xl font-bold text-slate-800">
+            @if(request()->routeIs('admin.dashboard'))
+                Dashboard
+            @elseif(request()->routeIs('admin.registration.*'))
+                Pemilik & Hewan
+            @elseif(request()->routeIs('admin.queues.*'))
+                Antrian Pasien
+            @elseif(request()->routeIs('admin.cashier.*'))
+                Kasir
+            @elseif(request()->routeIs('admin.medicines.*'))
+                Stok Obat
+            @elseif(request()->routeIs('admin.referrals.*'))
+                Surat Rujukan
+            @else
+                Admin Panel
+            @endif
+        </h1>
+    </div>
+
+    {{-- RIGHT: Info & Status --}}
+    <div class="flex items-center gap-6">
         
-        <!-- Date & Time -->
-        <div class="hidden md:block">
-            <div class="text-right">
-                <div id="current-date-time" class="text-gray-600 text-sm font-medium"></div>
-                <div class="text-xs text-gray-400">Local Time</div>
-            </div>
+        {{-- Quick Status Badges --}}
+        <div class="hidden lg:flex items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                Klinik Buka
+            </span>
         </div>
-        
-        <!-- User Profile -->
-        <div class="flex items-center space-x-3">
-            <div class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span class="text-white font-semibold text-sm">
-                        @if(Auth::check())
-                            {{ substr(Auth::user()->name, 0, 2) }}
-                        @else
-                            GU
-                        @endif
-                    </span>
-                </div>
-                <div class="hidden md:block">
-                    <div class="font-semibold text-gray-900 text-sm">
-                        @if(Auth::check())
-                            {{ Auth::user()->name }}
-                        @else
-                            Guest
-                        @endif
-                    </div>
-                    <div class="text-xs text-gray-500">
-                        @if(Auth::check())
-                            {{ ucfirst(Auth::user()->role) }}
-                        @else
-                            User
-                        @endif
-                    </div>
-                </div>
+
+        {{-- Date & Time --}}
+        <div class="text-right border-l border-gray-200 pl-6">
+            <div id="topbar-time" class="text-lg font-bold text-slate-800 tabular-nums">--:--</div>
+            <div id="topbar-date" class="text-xs text-slate-500">Loading...</div>
+        </div>
+
+        {{-- User Profile --}}
+        <div class="flex items-center gap-3 pl-6 border-l border-gray-200">
+            <div class="w-9 h-9 bg-[#970747] rounded-full flex items-center justify-center shadow-sm">
+                <span class="text-white font-semibold text-sm">
+                    {{ strtoupper(substr(Auth::guard('admin')->user()->name ?? 'A', 0, 2)) }}
+                </span>
             </div>
-            
-            <!-- Logout Button -->
-            <form action="{{ route('logout') }}" method="POST" class="inline-block">
-                @csrf
-                <input type="hidden" name="guard" value="admin">
-                <button type="submit" 
-                        class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
-                        title="Logout">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                </button>
-            </form>
+            <div class="hidden md:block">
+                <div class="text-sm font-semibold text-slate-800">{{ Auth::guard('admin')->user()->name ?? 'Admin' }}</div>
+                <div class="text-xs text-slate-500">Admin</div>
+            </div>
         </div>
     </div>
 </header>
+
+<script>
+    // Update waktu real-time
+    function updateTopbarDateTime() {
+        const now = new Date();
+        
+        // Format waktu HH:MM
+        const timeString = now.toLocaleTimeString('id-ID', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
+        
+        // Format tanggal: Sabtu, 7 Feb 2026
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const dayName = days[now.getDay()];
+        const date = now.getDate();
+        const month = months[now.getMonth()];
+        const year = now.getFullYear();
+        const dateString = `${dayName}, ${date} ${month} ${year}`;
+        
+        const timeEl = document.getElementById('topbar-time');
+        const dateEl = document.getElementById('topbar-date');
+        
+        if (timeEl) timeEl.textContent = timeString;
+        if (dateEl) dateEl.textContent = dateString;
+    }
+
+    // Update waktu setiap detik
+    updateTopbarDateTime();
+    setInterval(updateTopbarDateTime, 1000);
+</script>

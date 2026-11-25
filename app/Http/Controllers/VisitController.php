@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Visit;
-use App\Models\Patient; // Diperlukan untuk memilih pasien
+use App\Models\Pet; // Diperlukan untuk memilih pasien
 use App\Models\MedicalRecord; // Diperlukan untuk integrasi dengan rekam medis
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate; // Untuk Gates
@@ -18,7 +18,7 @@ class VisitController extends Controller
     {
         Gate::authorize('manage-visits'); // Gate untuk memastikan hanya admin yang bisa mengelola kunjungan
 
-        $visits = Visit::with(['patient', 'admin']) // Load relasi patient dan admin untuk ditampilkan
+        $visits = Visit::with(['pet', 'admin']) // Load relasi pet dan admin untuk ditampilkan
                        ->orderByDesc('visit_date') // Urutkan berdasarkan tanggal kunjungan terbaru
                        ->paginate(10); // Tampilkan 10 kunjungan per halaman
 
@@ -29,8 +29,8 @@ class VisitController extends Controller
     public function create()
     {
         Gate::authorize('manage-visits');
-        $patients = Patient::orderBy('name')->get(); // Ambil semua pasien untuk dropdown
-        return view('admin.visits.create', compact('patients'));
+        $pets = Pet::orderBy('name')->get(); // Ambil semua pasien untuk dropdown
+        return view('admin.visits.create', compact('pets'));
     }
 
     // ADMIN: Menyimpan kunjungan baru ke database
@@ -39,7 +39,7 @@ class VisitController extends Controller
         Gate::authorize('manage-visits');
 
         $request->validate([
-            'patient_id' => 'required|exists:patients,id',
+            'pet_id' => 'required|exists:pets,id',
             'visit_date' => 'required|date',
             'purpose' => 'nullable|string|max:255',
             'status' => 'required|in:pending,completed,canceled', // Pilihan status kunjungan
@@ -47,7 +47,7 @@ class VisitController extends Controller
         ]);
 
         Visit::create([
-            'patient_id' => $request->patient_id,
+            'pet_id' => $request->pet_id,
             'admin_id' => Auth::id(), // Admin yang login otomatis menjadi pencatat
             'visit_date' => $request->visit_date,
             'purpose' => $request->purpose,
@@ -62,11 +62,11 @@ class VisitController extends Controller
     public function show(Visit $visit)
     {
         Gate::authorize('manage-visits'); // Admin melihat detail kunjungan
-        $visit->load('patient', 'admin'); // Load relasi patient dan admin
+        $visit->load('pet', 'admin'); // Load relasi pet dan admin
 
         // Mencari rekam medis terkait dengan pasien dan tanggal kunjungan yang SAMA PERSIS
         // Gunakan whereDate() untuk membandingkan hanya bagian tanggal
-        $relatedMedicalRecord = MedicalRecord::where('patient_id', $visit->patient_id)
+        $relatedMedicalRecord = MedicalRecord::where('patient_id', $visit->pet_id)
                                              ->whereDate('visit_date', $visit->visit_date)
                                              ->first(); // Mengambil satu rekam medis pertama yang cocok
 
@@ -77,8 +77,8 @@ class VisitController extends Controller
     public function edit(Visit $visit)
     {
         Gate::authorize('manage-visits');
-        $patients = Patient::orderBy('name')->get();
-        return view('admin.visits.edit', compact('visit', 'patients'));
+        $pets = Pet::orderBy('name')->get();
+        return view('admin.visits.edit', compact('visit', 'pets'));
     }
 
     // ADMIN: Memperbarui data kunjungan di database
@@ -87,7 +87,7 @@ class VisitController extends Controller
         Gate::authorize('manage-visits');
 
         $request->validate([
-            'patient_id' => 'required|exists:patients,id',
+            'pet_id' => 'required|exists:pets,id',
             'visit_date' => 'required|date',
             'purpose' => 'nullable|string|max:255',
             'status' => 'required|in:pending,completed,canceled',

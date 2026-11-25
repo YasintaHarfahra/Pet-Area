@@ -5,30 +5,29 @@
 @section('content')
     <div class="mb-8 flex items-center justify-between">
         <div>
-            <p class="text-sm uppercase tracking-wide text-blue-500 font-semibold">Mulai Pemeriksaan</p>
+            <p class="text-sm uppercase tracking-wide text-[#970747] font-semibold">Mulai Pemeriksaan</p>
             <h1 class="text-3xl font-extrabold text-gray-900 mt-1">{{ $queue->patient->name }}</h1>
             <p class="text-gray-500">No. Rekam Medis: <span class="font-semibold text-gray-900">{{ $queue->patient->medical_record_number ?? '-' }}</span></p>
         </div>
         <div class="flex items-center space-x-3">
-            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold
-                @if($queue->status === 'in-progress')
-                    bg-green-100 text-green-700
-                @elseif($queue->status === 'completed')
-                    bg-gray-100 text-gray-700
-                @else
-                    bg-yellow-100 text-yellow-700
-                @endif">
-                <span class="w-2 h-2 rounded-full mr-2
-                    @if($queue->status === 'in-progress')
-                        bg-green-500
-                    @elseif($queue->status === 'completed')
-                        bg-gray-500
-                    @else
-                        bg-yellow-500
-                    @endif"></span>
+            @php
+                $statusBadge = match($queue->status) {
+                    'in-progress' => 'bg-green-100 text-green-700',
+                    'completed' => 'bg-slate-100 text-slate-700',
+                    default => 'bg-amber-100 text-amber-700',
+                };
+                $statusDot = match($queue->status) {
+                    'in-progress' => 'bg-green-500',
+                    'completed' => 'bg-slate-500',
+                    default => 'bg-amber-500',
+                };
+            @endphp
+            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold {{ $statusBadge }}">
+                <span class="w-2 h-2 rounded-full mr-2 {{ $statusDot }}"></span>
                 Status: {{ ucfirst(str_replace('-', ' ', $queue->status)) }}
             </span>
-            <a href="{{ route('dokter.queues.index') }}" class="text-gray-600 hover:text-gray-900 text-sm font-medium">← Kembali ke Antrian</a>
+            <a href="{{ route('dokter.queues.index') }}" class="text-slate-600 hover:text-slate-900 text-sm font-medium">← Kembali ke Antrian</a>
+                <a href="{{ route('dokter.antrian.index') }}" class="text-slate-600 hover:text-slate-900 text-sm font-medium">← Kembali ke Antrian</a>
         </div>
     </div>
 
@@ -138,8 +137,8 @@
                     Tanggal pemeriksaan hari ini:<br>
                     <span class="font-semibold text-gray-900">{{ now()->translatedFormat('d M Y') }}</span>
                 </div>
-                <a href="{{ route('dokter.medical_records.create', ['patient_id' => $queue->patient_id, 'queue_id' => $queue->id]) }}"
-                   class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                <a href="{{ route('dokter.medical_records.create', ['patient_id' => $queue->id_pet, 'queue_id' => $queue->id_queue]) }}"
+                   class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold text-white bg-[#970747] hover:bg-[#7a0538] transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
@@ -178,7 +177,7 @@
                                 {{ \Illuminate\Support\Str::limit($record->prescription ?? '-', 60) }}
                             </td>
                             <td class="px-6 py-4 text-center text-sm">
-                                <a href="{{ route('medical_records.show', $record->id) }}" class="text-blue-600 hover:text-blue-800 font-semibold">Detail</a>
+                                <a href="{{ route('medical_records.show', $record->id_medical_record) }}" class="text-[#970747] hover:text-[#7a0538] font-semibold">Detail</a>
                             </td>
                         </tr>
                     @empty

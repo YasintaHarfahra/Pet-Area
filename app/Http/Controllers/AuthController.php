@@ -2,13 +2,75 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use App\Models\User;
 
 class AuthController extends Controller
 {
+    public function showResetPasswordForm(Request $request, string $token)
+    {
+        return view('auth.reset_password', [
+            'email' => $request->query('email'),
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Show forgot password form for dokter
+     */
+    public function showForgotPasswordForm()
+    {
+        return view('auth.forgot_password');
+    }
+
+    /**
+     * Handle forgot password request for dokter
+     */
+    public function sendForgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        Password::sendResetLink($request->only('email'));
+
+        return back()->with('status', 'Jika email tersebut terdaftar, tautan reset kata sandi akan dikirim.');
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password): void {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('login')
+                ->with('success', 'Password berhasil direset. Silakan login dengan password baru.');
+        }
+
+        return back()->withErrors([
+            'email' => 'Tautan reset kata sandi tidak valid atau sudah kedaluwarsa.',
+        ]);
+    }
+
     public function showLoginForm(Request $request)
     {
         $rememberRole = $request->cookie('remember_role_type', 'dokter');
@@ -24,91 +86,68 @@ class AuthController extends Controller
         $request->validate([
             'login_field' => 'required|string',
             'password' => 'required|string',
-            'role_type' => 'required|in:dokter,admin', // Validasi role yang dipilih
+            'role_type' => 'required|in:dokter,admin',
         ]);
 
         $loginField = $request->input('login_field');
         $password = $request->input('password');
-        $roleType = $request->input('role_type'); // Ambil role yang dipilih user
+        $roleType = $request->input('role_type');
+        $remember = $request->boolean('remember');
 
-        $credentials = [
-            'password' => $password,
-        ];
-
-        // Sesuaikan kredensial berdasarkan role_type yang dipilih user
+        // Cari user berdasarkan role
         if ($roleType === 'dokter') {
-            $credentials['email'] = $loginField;
-        } elseif ($roleType === 'admin') {
-            $credentials['username'] = $loginField;
+            $user = User::where('email', $loginField)->where('role', 'dokter')->first();
         } else {
-            // Fallback jika role_type tidak valid (harusnya sudah dicegah oleh validasi 'in:dokter,admin')
+            $user = User::where('username', $loginField)->where('role', 'admin')->first();
+        }
+
+        // CSRF sudah divalidasi oleh middleware VerifyCsrfToken (tidak perlu cek manual)
+
+        // Jika user tidak ditemukan
+        if (!$user) {
             return back()->withErrors([
-                'login_field' => 'Role yang dipilih tidak valid.',
+                'login_field' => 'Akun tidak ditemukan.',
             ])->onlyInput('login_field');
         }
 
-        $remember = $request->boolean('remember');
-        $guard = $roleType === 'dokter' ? 'dokter' : 'admin';
-
-        if (Auth::guard($guard)->attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-            $user = Auth::guard($guard)->user();
-            if ($user && $user->role === $roleType) {
-                auth()->shouldUse($guard);
-                $response = $this->redirectBasedOnRole($user);
-
-                if ($remember) {
-                    return $response->withCookies([
-                        cookie('remember_role_type', $roleType, 60 * 24 * 30),
-                        cookie('remember_login_field', $loginField, 60 * 24 * 30),
-                        cookie('remember_flag', true, 60 * 24 * 30),
-                    ]);
-                }
-
-                return $response->withCookies([
-                    Cookie::forget('remember_role_type'),
-                    Cookie::forget('remember_login_field'),
-                    Cookie::forget('remember_flag'),
-                ]);
-            } else {
-                Auth::guard($guard)->logout();
-                return back()->withErrors([
-                    'login_field' => 'Role yang Anda pilih tidak cocok dengan akun ini. Silakan coba role lain.',
-                ])->onlyInput('login_field');
-            }
+        // Verifikasi password
+        if (!Hash::check($password, $user->password)) {
+            return back()->withErrors([
+                'login_field' => 'Password salah.',
+            ])->onlyInput('login_field');
         }
 
-        // Jika Auth::attempt gagal
-        return back()->withErrors([
-            'login_field' => 'Kombinasi ' . ($roleType === 'dokter' ? 'email' : 'username') . ' dan password tidak cocok.',
-        ])->onlyInput('login_field');
+        // Login user ke guard yang sesuai
+        $guard = $roleType === 'dokter' ? 'dokter' : 'admin';
+        Auth::guard($guard)->login($user, $remember);
+        $request->session()->regenerate();
+        auth()->shouldUse($guard);
+
+        // Redirect langsung ke dashboard sesuai role
+        if ($guard === 'dokter') {
+            return redirect()->route('dokter.dashboard');
+        } else {
+            return redirect()->route('admin.dashboard');
+        }
     }
 
     public function logout(Request $request)
     {
-        $guard = $request->input('guard');
-        $guardsToLogout = [];
+        // Logout semua guards (admin dan dokter)
+        Auth::guard('admin')->logout();
+        Auth::guard('dokter')->logout();
 
-        if ($guard && in_array($guard, ['admin', 'dokter'])) {
-            $guardsToLogout[] = $guard;
-        } else {
-            $guardsToLogout = ['admin', 'dokter'];
-        }
-
-        foreach ($guardsToLogout as $logoutGuard) {
-            if (Auth::guard($logoutGuard)->check()) {
-                Auth::guard($logoutGuard)->logout();
-            }
-        }
-
+        // Invalidate dan regenerate session
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/login');
     }
 
     protected function redirectBasedOnRole($user)
     {
-        if ($user->role === 'dokter') { return redirect()->intended(route('dashboard.dokter')); }
-        elseif ($user->role === 'admin') { return redirect()->intended(route('dashboard.admin')); }
+        if ($user->role === 'dokter') { return redirect()->intended(route('dokter.dashboard')); }
+        elseif ($user->role === 'admin') { return redirect()->intended(route('admin.dashboard')); }
         return redirect()->intended('/home');
     }
 }

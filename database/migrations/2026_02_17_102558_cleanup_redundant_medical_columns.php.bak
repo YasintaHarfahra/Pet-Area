@@ -1,0 +1,64 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // 1. KONSOLIDASI DATA (Memindahkan isi kolom Indonesia ke Inggris jika Inggris kosong)
+        // Kita menggunakan Query Builder agar proses ini berjalan sebelum kolom dihapus
+        DB::table('medical_records')->update([
+            'symptoms' => DB::raw('COALESCE(symptoms, keluhan)'),
+            'diagnosis' => DB::raw('COALESCE(diagnosis, diagnosa)'),
+            'treatment' => DB::raw('COALESCE(treatment, tindakan)'),
+            'next_control_date' => DB::raw('COALESCE(next_control_date, tgl_kontrol_berikutnya)'),
+            'follow_up_notes' => DB::raw('COALESCE(follow_up_notes, catatan_kontrol)'),
+        ]);
+
+        // 2. PEMBERSIHAN STRUKTUR
+        Schema::table('medical_records', function (Blueprint $table) {
+            // Menghapus kolom redundan bahasa Indonesia
+            $table->dropColumn([
+                'keluhan', 
+                'diagnosa', 
+                'tindakan', 
+                'tgl_kontrol_berikutnya', 
+                'catatan_kontrol'
+            ]);
+
+            // Menghapus kolom lama yang mungkin tidak terpakai lagi agar rapi
+            // Pastikan patient_id tidak lagi digunakan (diganti pet_id)
+            if (Schema::hasColumn('medical_records', 'patient_id')) {
+                $table->dropColumn('patient_id');
+            }
+            
+            if (Schema::hasColumn('medical_records', 'notes')) {
+                $table->dropColumn('notes');
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('medical_records', function (Blueprint $table) {
+            // Mengembalikan kolom jika migrasi di-rollback (opsional)
+            $table->text('keluhan')->nullable();
+            $table->text('diagnosa')->nullable();
+            $table->text('tindakan')->nullable();
+            $table->date('tgl_kontrol_berikutnya')->nullable();
+            $table->text('catatan_kontrol')->nullable();
+            $table->bigInteger('patient_id')->nullable();
+            $table->text('notes')->nullable();
+        });
+    }
+};

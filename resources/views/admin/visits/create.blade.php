@@ -59,7 +59,7 @@
 
         <div class="flex items-center justify-between">
             <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-150">
+                    class="bg-[#970747] hover:bg-[#7a0538] text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-150">
                 Simpan Kunjungan
             </button>
             <a href="{{ route('admin.visits.index') }}" class="text-gray-600 hover:text-gray-800 font-medium">Batal</a>

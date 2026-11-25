@@ -1,7 +1,7 @@
 @extends('layouts.dokter_app')
 
-@section('title', 'Kelola Staf - Dokter')
-@section('header_title', 'Manajemen Staf')
+@section('title', 'Kelola Admin - Dokter')
+@section('header_title', 'Manajemen Admin')
 
 @section('content')
     <h2 class="text-3xl font-semibold text-gray-800 mb-6">Daftar Admin</h2>
@@ -13,7 +13,7 @@
     @endif
 
     <div class="flex justify-end mb-4">
-        <a href="{{ route('dokter.staff.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150">
+        <a href="{{ route('dokter.staff.create') }}" class="bg-[#970747] hover:bg-[#7a0538] text-white font-bold py-2 px-4 rounded-md transition duration-150">
             Tambah Admin Baru
         </a>
     </div>
@@ -29,14 +29,14 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-                @forelse ($admins as $admin)
+                @forelse ($staff as $member)
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $admin->name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $admin->email }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $admin->username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $member->name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $member->email }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $member->username ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <a href="{{ route('dokter.staff.edit', $admin->id) }}" class="text-yellow-600 hover:text-yellow-900 mr-2">Edit</a>
-                            <form action="{{ route('dokter.staff.destroy', $admin->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini?');">
+                            <a href="{{ route('dokter.staff.edit', $member->id_user) }}" class="text-yellow-600 hover:text-yellow-900 mr-2">Edit</a>
+                            <form action="{{ route('dokter.staff.destroy', $member->id_user) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
@@ -45,7 +45,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">Tidak ada data staf (admin).</td>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">Tidak ada data admin.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -53,6 +53,6 @@
     </div>
 
     <div class="mt-4">
-        {{ $admins->links('pagination::tailwind') }}
+        {{ $staff->links('pagination::tailwind') }}
     </div>
 @endsection

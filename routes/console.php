@@ -1,8 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Perintah ini akan menjalankan 'send:reminder-kontrol' setiap hari jam 09:00 pagi
+Schedule::command('send:reminder-kontrol')->dailyAt('09:00');

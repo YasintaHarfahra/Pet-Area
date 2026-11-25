@@ -10,6 +10,8 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    protected $primaryKey = 'id_user';
+
     protected $fillable = [
         'name',
         'email',
@@ -31,18 +33,12 @@ class User extends Authenticatable
     // Relasi: User (dokter) memiliki banyak rekam medis
     public function medicalRecords()
     {
-        return $this->hasMany(MedicalRecord::class, 'doctor_id');
-    }
-
-    // Relasi: User (admin) memiliki banyak kunjungan
-    public function visits()
-    {
-        return $this->hasMany(Visit::class, 'admin_id');
+        return $this->hasMany(MedicalRecord::class, 'id_doctor');
     }
 
     // Relasi: User (admin) memiliki banyak transaksi
     public function transactions()
     {
-        return $this->hasMany(Transaction::class, 'admin_id');
+        return $this->hasMany(Transaction::class, 'id_admin');
     }
 }

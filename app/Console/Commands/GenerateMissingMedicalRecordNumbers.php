@@ -40,18 +40,18 @@ class GenerateMissingMedicalRecordNumbers extends Command
 
         $count = 0;
         foreach ($patientsWithoutRm as $patient) {
-            // Generate Nomor RM dengan format RM-YYYYMMDD-IDPASIEN
-            // Kita gunakan created_at pasien untuk tanggal jika tersedia, atau tanggal saat ini
-            $datePart = $patient->created_at ? $patient->created_at->format('Ymd') : Carbon::now()->format('Ymd');
-            $medicalRecordNumber = 'RM-' . $datePart . '-' . str_pad($patient->id, 4, '0', STR_PAD_LEFT);
+            // Generate Nomor RM dengan format baru: RM-XX-YYMM-NNNN
+            $speciesCode = Patient::getSpeciesCode($patient->species);
+            $medicalRecordNumber = Patient::generateMedicalRecordNumber($patient->species);
 
+            $patient->species_code = $speciesCode;
             $patient->medical_record_number = $medicalRecordNumber;
             $patient->save();
             $count++;
-            $this->info("Generated RM: {$medicalRecordNumber} for Patient ID: {$patient->id} ({$patient->name})");
+            $this->info("Generated RM: {$medicalRecordNumber} for {$patient->name} ({$patient->species})");
         }
 
-        $this->info("Selesai! {$count} Nomor RM berhasil digenerate.");
+        $this->info("Selesai! {$count} Nomor RM berhasil digenerate dengan format baru: RM-XX-YYMM-NNNN");
         return Command::SUCCESS;
     }
 }

@@ -4,7 +4,7 @@
 @section('header_title', 'Edit Transaksi')
 
 @section('content')
-    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Edit Transaksi Pembayaran #{{ $transaction->id }}</h2>
+    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Edit Transaksi Pembayaran #{{ $transaction->id_transaction }}</h2>
 
     @if ($errors->any())
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -18,7 +18,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.transactions.update', $transaction->id) }}" method="POST" class="bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto">
+    <form action="{{ route('admin.transactions.update', $transaction->id_transaction) }}" method="POST" class="bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto">
         @csrf
         @method('PUT')
         <div class="mb-4">
@@ -32,7 +32,7 @@
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <option value="">-- Tidak Terkait Pasien --</option>
                 @foreach ($patients as $patient)
-                    <option value="{{ $patient->id }}" {{ (old('patient_id', $transaction->patient_id) == $patient->id) ? 'selected' : '' }}>
+                    <option value="{{ $patient->id_pet }}" {{ (old('patient_id', $transaction->id_pet) == $patient->id_pet) ? 'selected' : '' }}>
                         {{ $patient->name }} (Pemilik: {{ $patient->owner_name }})
                     </option>
                 @endforeach

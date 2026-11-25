@@ -1,5 +1,4 @@
 <?php
-// app/Models/MedicalRecord.php
 
 namespace App\Models;
 
@@ -10,61 +9,64 @@ class MedicalRecord extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id_medical_record';
+
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Hitung dan simpan total biaya rekam medis
      */
+    public function calculateTotalBiaya()
+    {
+        $biayaPemeriksaan = $this->biaya_pemeriksaan ?? 0;
+        $biayaTindakan = $this->biaya_tindakan ?? 0;
+        $biayaObat = $this->biaya_obat ?? 0;
+        $total = $biayaPemeriksaan + $biayaTindakan + $biayaObat;
+        $this->total_biaya = $total;
+        $this->save();
+    }
+
+    protected $table = 'medical_records';
+
     protected $fillable = [
-        'patient_id',
-        'doctor_id',
-        'queue_id',
+        'id_pet',
+        'id_doctor',
+        'id_queue',
         'visit_date',
         'symptoms',
         'diagnosis',
-        'treatment',
         'prescription',
-        'notes',
+        'berat_badan',
+        'suhu_tubuh',
+        'next_control_date',
+        'follow_up_notes',
+        'biaya_pemeriksaan',
+        'biaya_tindakan',
+        'biaya_obat',
+        'total_biaya',
+        'status'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
+    // Scope untuk filter berdasarkan dokter
+    public function scopeByDoctor($query, $doctorId)
+    {
+        return $query->where('id_doctor', $doctorId);
+    }
+
     protected $casts = [
-        'visit_date' => 'date', // Otomatis cast ke objek Carbon/Date
+        'visit_date' => 'datetime',
+        'next_control_date' => 'date',
     ];
 
-    /**
-     * Get the patient that owns the medical record.
-     */
-    public function patient()
+    // Relasi Many-to-Many untuk Tindakan
+    // withTrashed() agar tindakan yang sudah dihapus (soft delete) tetap tampil di riwayat
+    public function treatments()
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsToMany(Treatment::class, 'medical_record_treatments', 'id_medical_record', 'id_treatment')
+            ->withPivot('harga')
+            ->withTrashed();
     }
 
-    /**
-     * Get the doctor (User) that created the medical record.
-     */
-    public function doctor()
-    {
-        return $this->belongsTo(User::class, 'doctor_id');
-    }
-
-    /**
-     * Get the queue associated with this medical record.
-     */
-    public function queue()
-    {
-        return $this->belongsTo(Queue::class);
-    }
-
-    /**
-     * Scope untuk mendapatkan riwayat pemeriksaan per pasien
-     */
-    public function scopeByPatient($query, $patientId)
-    {
-        return $query->where('patient_id', $patientId)->orderBy('visit_date', 'desc');
-    }
+    public function pet() { return $this->belongsTo(Pet::class, 'id_pet')->withTrashed(); }
+    public function doctor() { return $this->belongsTo(User::class, 'id_doctor'); }
+    public function prescriptionItems() { return $this->hasMany(PrescriptionItem::class, 'id_medical_record'); }
+    public function referral() { return $this->hasOne(Referral::class, 'id_medical_record'); }
 }

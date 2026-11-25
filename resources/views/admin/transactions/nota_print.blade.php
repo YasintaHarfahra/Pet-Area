@@ -34,8 +34,8 @@
 <body class="bg-gray-50 p-4">
 
     <div class="no-print text-center mb-4">
-        <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md">Cetak Nota Ini</button>
-        <a href="{{ route('admin.transactions.show', $transaction->id) }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md ml-2">Kembali</a>
+        <button onclick="window.print()" class="bg-[#970747] hover:bg-[#970747] text-white font-bold py-2 px-4 rounded-md">Cetak Nota Ini</button>
+        <a href="{{ route('admin.transactions.show', $transaction->id_transaction) }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md ml-2">Kembali</a>
     </div>
 
     <div class="nota-container shadow-lg">
@@ -54,7 +54,7 @@
             </tr>
             <tr>
                 <td>No. Transaksi</td>
-                <td class="text-right">TRX-{{ $transaction->id }}-{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('Ymd') }}</td>
+                <td class="text-right">TRX-{{ $transaction->id_transaction }}-{{ \Carbon\Carbon::parse($transaction->transaction_date)->format('Ymd') }}</td>
             </tr>
             <tr>
                 <td>Admin</td>

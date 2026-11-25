@@ -91,13 +91,18 @@
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-gray-50">
-    @include('layouts._sidebar_admin')
-    <div class="flex-1 flex flex-col overflow-hidden">
-        @include('layouts._topbar_admin')
-        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 fade-in">
-            @yield('content')
-        </main>
+<body class="bg-[#FDF2F8]">
+    <div class="flex min-h-screen">
+        {{-- Sidebar - Sticky --}}
+        @include('layouts._sidebar_admin')
+        
+        {{-- Main Content Area --}}
+        <div class="flex-1 flex flex-col min-h-screen">
+            @include('layouts._topbar_admin')
+            <main class="flex-1 p-6 bg-[#FDF2F8] fade-in">
+                @yield('content')
+            </main>
+        </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

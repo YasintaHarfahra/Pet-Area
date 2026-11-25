@@ -13,7 +13,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            InitialUsersSeeder::class, // Panggil seeder ini
+            InitialUsersSeeder::class,
+            TreatmentSeeder::class,
+            MedicineSeeder::class,
         ]);
     }
 }

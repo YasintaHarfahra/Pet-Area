@@ -51,17 +51,38 @@
                     </dl>
                 </div>
 
-                <!-- Patient Information -->
+                <!-- Pet/Patient Information -->
                 <div>
                     <h2 class="text-xl font-semibold text-gray-800 mb-4">Informasi Pasien</h2>
+                    <div class="mb-4">
+                        @if($queue->pet?->foto_hewan_url)
+                            <img src="{{ $queue->pet->foto_hewan_url }}" alt="Foto {{ $queue->pet?->nama_hewan ?? 'Hewan' }}" class="w-24 h-24 rounded-xl object-cover border border-gray-200">
+                        @else
+                            <div class="w-24 h-24 rounded-xl bg-pink-100 text-[#970747] text-3xl font-bold flex items-center justify-center">
+                                {{ strtoupper(substr($queue->pet?->nama_hewan ?? 'P', 0, 1)) }}
+                            </div>
+                        @endif
+                    </div>
                     <dl class="grid grid-cols-1 gap-4">
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">Nama Pasien</dt>
-                            <dd class="mt-1 text-gray-900">{{ $queue->patient->name }}</dd>
+                            <dt class="text-sm font-medium text-gray-500">Nama Hewan</dt>
+                            <dd class="mt-1 text-gray-900">{{ $queue->pet?->nama_hewan ?? ($queue->patient->name ?? '-') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Jenis / Ras</dt>
+                            <dd class="mt-1 text-gray-900">{{ $queue->pet?->jenis ?? ($queue->patient->species ?? '-') }} / {{ $queue->pet?->ras ?? ($queue->patient->breed ?? '-') }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Nomor Rekam Medis</dt>
-                            <dd class="mt-1 text-gray-900">{{ $queue->patient->medical_record_number }}</dd>
+                            <dd class="mt-1 text-gray-900">{{ $queue->pet?->no_rm ?? '-' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Pemilik</dt>
+                            <dd class="mt-1 text-gray-900">{{ $queue->pet?->owner?->nama ?? ($queue->patient->owner_name ?? '-') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Telepon Pemilik</dt>
+                            <dd class="mt-1 text-gray-900">{{ $queue->pet?->owner?->telepon ?? ($queue->patient->owner_phone ?? '-') }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Keluhan</dt>
@@ -78,7 +99,7 @@
                 </a>
                 
                 @if($queue->status === 'waiting')
-                    <form action="{{ route('admin.queues.cancel', $queue->id) }}" method="POST" class="inline">
+                    <form action="{{ route('admin.queues.cancel', $queue->id_queue) }}" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit" 
